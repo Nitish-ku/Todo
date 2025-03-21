@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo list</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <input type="text" id="new-task" placeholder="enter your task here" />
+      <button id="add-btn">Add</button>
+      <p>Progress: <span id="progress-display">0 / 0</span></p>
+      <div class="progress-bar">
+        <div class="progress-line" id="progress-line"></div>
+      </div>
+      <ul id="task-list"></ul>
+    </div>
+
+    <script>
+      // reference to the input, button and ul list
+      const newTaskInput = document.getElementById("new-task");
+      const addButton = document.getElementById("add-btn");
+      const taskList = document.getElementById("task-list");
+
+      // function to create new list items
+      function createListItem(task) {
+        const listItem = document.createElement("li");
+
+        // creating checkbox with the help of input element and the type attribute and finally adding a class to it and then adding it as a child to the li element
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.classList.add("task-checkbox");
+        listItem.appendChild(checkbox);
+
+        // creating span element and it'll have the task that the user will write. And finnaly adding it as a child to the li element
+        const taskSpan = document.createElement("span");
+        taskSpan.textContent = task;
+        listItem.appendChild(taskSpan);
+
+        // creating a div with class button-container
+        const buttonContainer = document.createElement("div");
+        buttonContainer.classList.add("button-container");
+
+        //creating the delete Button which will be the child element of the button container
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.classList.add("delete-btn");
+        buttonContainer.appendChild(deleteButton);
+
+        // creating the edit button which will be the child element of the button container
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.classList.add("edit-btn");
+        buttonContainer.appendChild(editButton);
+
+        // making this button container div the child element of the li element
+        listItem.appendChild(buttonContainer);
+
+        //finnally returning the li element along with all the child elements
+        return listItem;
+      }
+
+      //   function to save tasks to local storage
+      function saveTask() {
+        const tasks = [];
+
+        // this sleects all the li element under the UL tag
+        const listItems = document.querySelectorAll("#task-list li");
+
+        // loops throughh each li element assigning item variable for each at a time
+        listItems.forEach((item) => {
+          // gets a refernce to the span element
+          const taskSpan = item.querySelector("span");
+
+          // gets a hold of the text that the user has written
+          const taskText = taskSpan.textContent;
+
+          // gets a reference to the input element
+          const checkbox = item.querySelector(".task-checkbox");
+
+          // gets the current state of the checkbox
+          const isCompleted = checkbox.checked;
+
+          tasks.push({ text: taskText, completed: isCompleted });
+        });
+
+        // saves the tasks array to the browser's local storage
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+      }
+
+      // function to load tasks from local storge
+      function loadTasks() {
+        // getting stored tasks by localStorage.getItem just like we did set the tasks by localStorage.setItem
+        const tasksJSON = localStorage.getItem("tasks");
+
+        // checking if the data exists
+        if (tasksJSON) {
+          // converts JSON string back to Javascript object
+          const tasks = JSON.parse(tasksJSON);
+          // loops through tasks one by one by providing the task variable
+          tasks.forEach((task) => {
+            // calls the creaeteListItem function that we defined above to create <li> element and it extracts the text that the user has written
+            const listItem = createListItem(task.text);
+
+            // get a hold of the checkbox
+            const checkbox = listItem.querySelector(".task-checkbox");
+
+            // restores the checkbox state
+            checkbox.checked = task.completed;
+
+            // if task is completed then add completed class for styling
+            if (task.completed) {
+              listItem.classList.add("completed");
+            }
+
+            // adds the li to the ul
+            taskList.appendChild(listItem);
+          });
+        }
+
+        // calls the function to update the progress bar based on the completed task
+        updateProgress();
+      }
+
+      //   Add an event listener to the button
+      addButton.addEventListener("click", function () {
+        // get the task from input
+        const task = newTaskInput.value;
+
+        // check if the task is empty
+        if (task.trim() === "") {
+          // basic error message
+          alert("Please enter a task!");
+
+          // stop the function
+          return;
+        }
+
+        // create a new list item
+        const listitem = createListItem(task);
+
+        // add the list item to the task list
+        taskList.appendChild(listitem);
+
+        // clear the input
+        newTaskInput.value = "";
+
+        // updates the progress bar
+        updateProgress();
+
+        // saves the task list to local storage so that it persist after refreshing the page
+        saveTask();
+      });
+
+      //   listens for click event on the entire lastList
+      taskList.addEventListener("click", function (event) {
+        // ensures that only clicks on the delete button gets triggered
+        // checks if the clicked element (event.target) has the class "delete-btn"
+        if (event.target.classList.contains("delete-btn")) {
+          // finds and removes the <li> element containing the task
+          event.target.parentNode.parentNode.remove();
+
+          // updates the progress bar
+          updateProgress();
+
+          // saves the task list to local storage so that it persist after refreshing the page
+          saveTask();
+        }
+
+        // detects a click on the edit button
+        if (event.target.classList.contains("edit-btn")) {
+          // refers to the li that contains the task
+          const listItem = event.target.parentNode.parentNode;
+
+          // gets the task span
+          const taskSpan = listItem.querySelector("span");
+
+          // get the text content that the user has written
+          const taskText = taskSpan.textContent;
+
+          // create an inuput field
+          const editInput = document.createElement("input");
+          editInput.tye = "text";
+          editInput.value = taskText;
+
+          // clears the existing task text
+          taskSpan.textContent = "";
+
+          // inserts the new inut field inside span
+          taskSpan.appendChild(editInput);
+
+          // calls focus so tha the user can start typing immediately
+          editInput.focus();
+
+          // adds an even listener for blur i.e. when the user clicks outside the input
+          editInput.addEventListener("blur", function () {
+            // gets the new text from the input field
+            const newText = editInput.value;
+
+            // updates span with the new text
+            taskSpan.textContent = newText;
+
+            // calls save task to save the updated task
+            saveTask();
+          });
+        }
+
+        if (event.target.classList.contains("task-checkbox")) {
+          const listitem = even.target.parentNode.parentNode;
+          if (event.target.checked) {
+            listitem.classList.add("completed");
+          } else {
+            listitem.classList.remove("completed");
+          }
+          updateProgress();
+          saveTask();
+        }
+      });
+
+      function updateProgress() {
+        const totalTasks = document.querySelectorAll("#task-list li").length;
+        const checkboxes = document.querySelectorAll(".task-checkbox:checked");
+        const progressLine = document.getElementById("progress-line");
+        const progressDisplay = document.getElementById("progress-display");
+
+        let progressPercentage = 0;
+        if (totalTasks > 0) {
+          progressPercentage = (checkboxes.length / totalTasks) * 100;
+        }
+
+        progressLine.style.width = `${progressPercentage}%`;
+        progressDisplay.textContent = `${checkboxes.length}/ ${totalTasks}`;
+      }
+
+      //   loads task when the page loads
+      loadTasks();
+    </script>
+  </body>
+</html>
