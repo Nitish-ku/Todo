@@ -181,7 +181,7 @@
 
           // create an inuput field
           const editInput = document.createElement("input");
-          editInput.tye = "text";
+          editInput.type = "text";
           editInput.value = taskText;
 
           // clears the existing task text
@@ -207,7 +207,7 @@
         }
 
         if (event.target.classList.contains("task-checkbox")) {
-          const listitem = even.target.parentNode.parentNode;
+          const listitem = event.target.parentNode.parentNode;
           if (event.target.checked) {
             listitem.classList.add("completed");
           } else {
@@ -230,7 +230,7 @@
         }
 
         progressLine.style.width = `${progressPercentage}%`;
-        progressDisplay.textContent = `${checkboxes.length}/ ${totalTasks}`;
+        progressDisplay.textContent = `${checkboxes.length} / ${totalTasks}`;
       }
 
       //   loads task when the page loads
@@ -238,3 +238,4 @@
     </script>
   </body>
 </html>
+
